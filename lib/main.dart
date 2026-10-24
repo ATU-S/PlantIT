@@ -94,9 +94,7 @@ class PlantItApp extends StatelessWidget {
         title: 'PlantIT',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const SplashScreen(
-          nextScreen: MainShellScreen(),
-        ),
+        home: const SplashScreen(nextScreen: MainShellScreen()),
       ),
     );
   }

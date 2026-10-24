@@ -22,8 +22,9 @@ class SpaceVisionService {
   SpaceVisionService({
     String? googleCloudVisionApiKey,
     GoogleCloudVisionClient? googleCloudVisionClient,
-  }) : _googleCloudVisionClient = googleCloudVisionClient ??
-            _clientForKey(googleCloudVisionApiKey ?? _compiledVisionApiKey);
+  }) : _googleCloudVisionClient =
+           googleCloudVisionClient ??
+           _clientForKey(googleCloudVisionApiKey ?? _compiledVisionApiKey);
 
   bool get isGoogleCloudVisionConfigured => _googleCloudVisionClient != null;
 
@@ -52,7 +53,9 @@ class SpaceVisionService {
     return GoogleCloudVisionClient(apiKey: apiKey.trim());
   }
 
-  Future<PhotoSpaceAnalysis?> _analyzePhotoIfNeeded(Uint8List? imageBytes) async {
+  Future<PhotoSpaceAnalysis?> _analyzePhotoIfNeeded(
+    Uint8List? imageBytes,
+  ) async {
     if (imageBytes == null) return null;
 
     // Slider changes and space-type changes reuse the selected bytes. Cache
@@ -62,7 +65,7 @@ class SpaceVisionService {
       return _lastPhotoAnalysis;
     }
 
-    final PhotoSpaceAnalysis photoAnalysis;
+    PhotoSpaceAnalysis photoAnalysis;
     if (_googleCloudVisionClient == null) {
       photoAnalysis = const PhotoSpaceAnalysis(
         source: PhotoAnalysisSource.offlineFallback,
@@ -71,8 +74,9 @@ class SpaceVisionService {
       );
     } else {
       try {
-        photoAnalysis =
-            await _googleCloudVisionClient.analyzeGrowingSpace(imageBytes);
+        photoAnalysis = await _googleCloudVisionClient.analyzeGrowingSpace(
+          imageBytes,
+        );
       } catch (_) {
         photoAnalysis = const PhotoSpaceAnalysis(
           source: PhotoAnalysisSource.offlineFallback,

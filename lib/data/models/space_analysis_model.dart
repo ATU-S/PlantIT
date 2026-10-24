@@ -1,11 +1,6 @@
 import 'crop_model.dart';
 
-enum SpaceType {
-  balcony,
-  terrace,
-  windowsill,
-  backyard,
-}
+enum SpaceType { balcony, terrace, windowsill, backyard }
 
 enum Season {
   monsoon, // June - Sept
@@ -18,10 +13,7 @@ enum Season {
 ///
 /// The app always keeps manual dimensions and sunlight as the source of truth:
 /// a single image cannot reliably measure either value.
-enum PhotoAnalysisSource {
-  googleCloudVision,
-  offlineFallback,
-}
+enum PhotoAnalysisSource { googleCloudVision, offlineFallback }
 
 /// Descriptive observations from the growing-space photo.
 ///
@@ -102,20 +94,20 @@ class ShoppingItem {
   });
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'category': category,
-        'estimatedPriceKerala': estimatedPriceKerala,
-        'nurseryTip': nurseryTip,
-        'isChecked': isChecked,
-      };
+    'name': name,
+    'category': category,
+    'estimatedPriceKerala': estimatedPriceKerala,
+    'nurseryTip': nurseryTip,
+    'isChecked': isChecked,
+  };
 
   factory ShoppingItem.fromJson(Map<String, dynamic> json) => ShoppingItem(
-        name: json['name'] as String,
-        category: json['category'] as String,
-        estimatedPriceKerala: json['estimatedPriceKerala'] as String,
-        nurseryTip: json['nurseryTip'] as String,
-        isChecked: json['isChecked'] as bool? ?? false,
-      );
+    name: json['name'] as String,
+    category: json['category'] as String,
+    estimatedPriceKerala: json['estimatedPriceKerala'] as String,
+    nurseryTip: json['nurseryTip'] as String,
+    isChecked: json['isChecked'] as bool? ?? false,
+  );
 }
 
 class SpaceAnalysisResult {

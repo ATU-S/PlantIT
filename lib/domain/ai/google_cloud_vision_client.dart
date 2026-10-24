@@ -16,19 +16,19 @@ class GoogleCloudVisionClient {
   final String apiKey;
   final http.Client _httpClient;
 
-  GoogleCloudVisionClient({
-    required this.apiKey,
-    http.Client? httpClient,
-  }) : _httpClient = httpClient ?? http.Client();
+  GoogleCloudVisionClient({required this.apiKey, http.Client? httpClient})
+    : _httpClient = httpClient ?? http.Client();
 
   Future<PhotoSpaceAnalysis> analyzeGrowingSpace(Uint8List imageBytes) async {
     if (apiKey.trim().isEmpty) {
-      throw const GoogleCloudVisionException('No Google Cloud Vision API key is configured.');
+      throw const GoogleCloudVisionException(
+        'No Google Cloud Vision API key is configured.',
+      );
     }
 
-    final endpoint = Uri.parse(_endpoint).replace(
-      queryParameters: {'key': apiKey},
-    );
+    final endpoint = Uri.parse(
+      _endpoint,
+    ).replace(queryParameters: {'key': apiKey});
     final response = await _httpClient
         .post(
           endpoint,
@@ -58,7 +58,9 @@ class GoogleCloudVisionClient {
     }
 
     if (response.statusCode != 200) {
-      throw GoogleCloudVisionException(_errorMessage(body, response.statusCode));
+      throw GoogleCloudVisionException(
+        _errorMessage(body, response.statusCode),
+      );
     }
 
     final responses = body['responses'];
@@ -71,10 +73,9 @@ class GoogleCloudVisionClient {
     final result = Map<String, dynamic>.from(responses.first as Map);
     final embeddedError = result['error'];
     if (embeddedError is Map) {
-      throw GoogleCloudVisionException(_errorMessage(
-        {'error': embeddedError},
-        response.statusCode,
-      ));
+      throw GoogleCloudVisionException(
+        _errorMessage({'error': embeddedError}, response.statusCode),
+      );
     }
 
     final labels = _readNamedAnnotations(result['labelAnnotations']);
@@ -131,10 +132,12 @@ class GoogleCloudVisionClient {
       final red = (color['red'] as num?)?.toDouble() ?? 0.0;
       final green = (color['green'] as num?)?.toDouble() ?? 0.0;
       final blue = (color['blue'] as num?)?.toDouble() ?? 0.0;
-      final weight = (entry['pixelFraction'] as num?)?.toDouble() ??
+      final weight =
+          (entry['pixelFraction'] as num?)?.toDouble() ??
           (entry['score'] as num?)?.toDouble() ??
           1.0;
-      totalLuminance += (0.2126 * red + 0.7152 * green + 0.0722 * blue) * weight;
+      totalLuminance +=
+          (0.2126 * red + 0.7152 * green + 0.0722 * blue) * weight;
       totalWeight += weight;
     }
 
@@ -147,9 +150,10 @@ class GoogleCloudVisionClient {
     required List<String> objects,
     required double? brightnessPercent,
   }) {
-    final detectedTerms = {...labels, ...objects}
-        .map((item) => item.toLowerCase())
-        .join(' ');
+    final detectedTerms = {
+      ...labels,
+      ...objects,
+    }.map((item) => item.toLowerCase()).join(' ');
     final observations = <String>[];
 
     if (detectedTerms.contains('plant') ||
