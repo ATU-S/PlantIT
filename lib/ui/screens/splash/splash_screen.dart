@@ -109,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               const SizedBox(height: 6),
 
               Text(
-                'കൃഷി ചെയ്യൂ • ഉണ്ണൂ • ജീവിക്കൂ',
+                'കൃഷി ചെയ്യൂ • ഉണ്ണൂ • നന്നായി ഉറങ്ങു • ജീവിക്കൂ',
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   fontWeight: FontWeight.w300,
