@@ -111,14 +111,7 @@ class _SplashScreenState extends State<SplashScreen>
 
               const SizedBox(height: 6),
 
-              Text(
-                    'കൃഷി ചെയ്യൂ • ഉണ്ണൂ • ജീവിക്കൂ',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white.withAlpha(170),
-                    ),
-                  )
+
                   .animate(delay: const Duration(milliseconds: 900))
                   .fadeIn(duration: const Duration(milliseconds: 600)),
 
