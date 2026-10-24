@@ -37,7 +37,8 @@ class FarmRepository {
             healthScore: 98,
             lastWatered: DateTime.now().subtract(const Duration(hours: 18)),
             totalGrowthDays: 30,
-            customNotes: 'Planted in 12x12 UV grow bag. Lush red foliage emerging!',
+            customNotes:
+                'Planted in 12x12 UV grow bag. Lush red foliage emerging!',
           ),
           FarmCrop(
             id: 'crop_2',
@@ -47,7 +48,9 @@ class FarmRepository {
             plantedDate: DateTime.now().subtract(const Duration(days: 21)),
             stage: GrowthStage.flowering,
             healthScore: 92,
-            lastWatered: DateTime.now().subtract(const Duration(hours: 26)), // Needs water today
+            lastWatered: DateTime.now().subtract(
+              const Duration(hours: 26),
+            ), // Needs water today
             totalGrowthDays: 75,
             customNotes: 'First cluster of yellow blossoms spotted!',
           ),
@@ -73,7 +76,8 @@ class FarmRepository {
             healthScore: 99,
             lastWatered: DateTime.now().subtract(const Duration(hours: 8)),
             totalGrowthDays: 45,
-            customNotes: 'Companion planter next to tomato. Keeps whiteflies away.',
+            customNotes:
+                'Companion planter next to tomato. Keeps whiteflies away.',
           ),
         ],
         activities: [
@@ -101,7 +105,8 @@ class FarmRepository {
       _farms = [sampleFarm];
       _activeFarmId = sampleFarm.id;
       _save();
-    } else if (_activeFarmId == null || !_farms.any((f) => f.id == _activeFarmId)) {
+    } else if (_activeFarmId == null ||
+        !_farms.any((f) => f.id == _activeFarmId)) {
       _activeFarmId = _farms.first.id;
       _storage.setActiveFarmId(_activeFarmId!);
     }
@@ -131,21 +136,24 @@ class FarmRepository {
     required double sunlightHours,
     List<String> initialCropIds = const [],
   }) async {
-    final farmId = 'farm_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000)}';
+    final farmId =
+        'farm_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000)}';
     final List<FarmCrop> initialCrops = [];
 
     for (final cropId in initialCropIds) {
       final crop = KeralaCropCatalog.getById(cropId);
       if (crop != null) {
-        initialCrops.add(FarmCrop(
-          id: 'crop_${DateTime.now().microsecondsSinceEpoch}_${Random().nextInt(100)}',
-          cropId: crop.id,
-          cropName: crop.name,
-          emoji: crop.emoji,
-          plantedDate: DateTime.now(),
-          stage: GrowthStage.seedling,
-          totalGrowthDays: crop.growthDurationDays,
-        ));
+        initialCrops.add(
+          FarmCrop(
+            id: 'crop_${DateTime.now().microsecondsSinceEpoch}_${Random().nextInt(100)}',
+            cropId: crop.id,
+            cropName: crop.name,
+            emoji: crop.emoji,
+            plantedDate: DateTime.now(),
+            stage: GrowthStage.seedling,
+            totalGrowthDays: crop.growthDurationDays,
+          ),
+        );
       }
     }
 
@@ -223,6 +231,10 @@ class FarmRepository {
       farmCrop.stage = GrowthStage.harvested;
     } else if (type == ActivityType.prune) {
       points = 4;
+      farmCrop.healthScore = (farmCrop.healthScore + 2).clamp(0, 100);
+    } else if (type == ActivityType.pestControl) {
+      points = 6;
+      farmCrop.healthScore = (farmCrop.healthScore + 4).clamp(0, 100);
     }
 
     final activity = CareActivity(
@@ -246,6 +258,15 @@ class FarmRepository {
 
     final farmCrop = farm.crops.firstWhere((c) => c.id == farmCropId);
     farmCrop.stage = stage;
+    await _save();
+  }
+
+  Future<void> updateCropNotes(String farmCropId, String notes) async {
+    final farm = getActiveFarm();
+    if (farm == null) return;
+
+    final farmCrop = farm.crops.firstWhere((c) => c.id == farmCropId);
+    farmCrop.customNotes = notes.trim();
     await _save();
   }
 

@@ -14,7 +14,7 @@ class FarmViewModel extends ChangeNotifier {
   FarmViewModel({
     required FarmRepository farmRepository,
     required this._gamificationViewModel,
-  })  : _farmRepo = farmRepository;
+  }) : _farmRepo = farmRepository;
 
   Future<void> refresh() async {
     notifyListeners();
@@ -29,8 +29,9 @@ class FarmViewModel extends ChangeNotifier {
   List<FarmCrop> get activeCrops => activeFarm?.crops ?? [];
   List<CareActivity> get recentActivities => activeFarm?.activities ?? [];
 
-  List<FarmCrop> get cropsNeedingCare =>
-      activeCrops.where((c) => c.needsWaterToday && c.stage != GrowthStage.harvested).toList();
+  List<FarmCrop> get cropsNeedingCare => activeCrops
+      .where((c) => c.needsWaterToday && c.stage != GrowthStage.harvested)
+      .toList();
 
   Future<void> switchFarm(String farmId) async {
     _isLoading = true;
@@ -133,6 +134,29 @@ class FarmViewModel extends ChangeNotifier {
     }
   }
 
+  Future<List<PlantBadge>> logCare(
+    String farmCropId,
+    ActivityType type, {
+    String notes = '',
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final activity = await _farmRepo.logCareActivity(
+        farmCropId: farmCropId,
+        type: type,
+        notes: notes,
+      );
+      return _gamificationViewModel.awardPoints(
+        points: activity.pointsEarned,
+        uniqueCropsCount: activeCrops.map((c) => c.cropId).toSet().length,
+      );
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<List<PlantBadge>> plantCrop(String cropId) async {
     _isLoading = true;
     notifyListeners();
@@ -152,6 +176,11 @@ class FarmViewModel extends ChangeNotifier {
 
   Future<void> updateStage(String farmCropId, GrowthStage stage) async {
     await _farmRepo.updateCropStage(farmCropId, stage);
+    notifyListeners();
+  }
+
+  Future<void> updateNotes(String farmCropId, String notes) async {
+    await _farmRepo.updateCropNotes(farmCropId, notes);
     notifyListeners();
   }
 }

@@ -6,6 +6,8 @@ import 'package:plantit/domain/ai/layout_planner.dart';
 import 'package:plantit/data/local/kerala_crop_catalog.dart';
 import 'package:plantit/data/local/local_storage_service.dart';
 import 'package:plantit/data/repositories/gamification_repository.dart';
+import 'package:plantit/data/repositories/farm_repository.dart';
+import 'package:plantit/data/models/farm_model.dart';
 
 void main() {
   group('AI Recommendation Engine & Agronomy Logic', () {
@@ -36,7 +38,9 @@ void main() {
       expect(grid.length, 2);
       expect(grid[0].length, 2);
       // Verify symbiotic pairing detected
-      final hasSynergy = grid.any((row) => row.any((cell) => cell.hasCompanionSynergy));
+      final hasSynergy = grid.any(
+        (row) => row.any((cell) => cell.hasCompanionSynergy),
+      );
       expect(hasSynergy, isTrue);
     });
 
@@ -71,6 +75,31 @@ void main() {
       expect(repo.getGamification().totalPoints, greaterThan(20));
       expect(repo.getGamification().currentStreak, 1);
       expect(badges.any((b) => b.id == 'sprout_starter'), isTrue);
+    });
+  });
+
+  group('Garden care journal', () {
+    test('persists care actions and crop notes', () async {
+      SharedPreferences.setMockInitialValues({});
+      final storage = await LocalStorageService.init();
+      final repository = FarmRepository(storage);
+      final crop = repository.getActiveFarm()!.crops.first;
+      final startingHealth = crop.healthScore;
+
+      final activity = await repository.logCareActivity(
+        farmCropId: crop.id,
+        type: ActivityType.fertilize,
+        notes: 'Added vermicompost.',
+      );
+      await repository.updateCropNotes(crop.id, 'Moved closer to morning sun.');
+
+      expect(activity.pointsEarned, 5);
+      expect(crop.healthScore, greaterThan(startingHealth));
+      expect(crop.customNotes, 'Moved closer to morning sun.');
+      expect(
+        repository.getActiveFarm()!.activities.first.type,
+        ActivityType.fertilize,
+      );
     });
   });
 }

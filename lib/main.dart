@@ -26,9 +26,9 @@ void main() async {
   final gamificationRepo = GamificationRepository(storageService);
 
   // Initialize domain services
-  final visionService = SpaceVisionService(
-    geminiApiKey: storageService.getGeminiApiKey(),
-  );
+  // For local development, pass GOOGLE_CLOUD_VISION_API_KEY through
+  // --dart-define. Public releases must use an authenticated backend proxy.
+  final visionService = SpaceVisionService();
 
   runApp(
     PlantItApp(

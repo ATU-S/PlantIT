@@ -14,6 +14,40 @@ enum Season {
   yearRound,
 }
 
+/// The source used to derive observations from a photo of a growing space.
+///
+/// The app always keeps manual dimensions and sunlight as the source of truth:
+/// a single image cannot reliably measure either value.
+enum PhotoAnalysisSource {
+  googleCloudVision,
+  offlineFallback,
+}
+
+/// Descriptive observations from the growing-space photo.
+///
+/// These observations supplement the crop planner; they do not replace the
+/// user's measurements or daily sunlight estimate.
+class PhotoSpaceAnalysis {
+  final PhotoAnalysisSource source;
+  final List<String> detectedLabels;
+  final List<String> detectedObjects;
+  final double? brightnessPercent;
+  final List<String> observations;
+  final String statusMessage;
+
+  const PhotoSpaceAnalysis({
+    required this.source,
+    this.detectedLabels = const [],
+    this.detectedObjects = const [],
+    this.brightnessPercent,
+    this.observations = const [],
+    required this.statusMessage,
+  });
+
+  bool get usedGoogleCloudVision =>
+      source == PhotoAnalysisSource.googleCloudVision;
+}
+
 class CropRecommendation {
   final Crop crop;
   final double score; // 0.0 to 100.0
@@ -95,6 +129,7 @@ class SpaceAnalysisResult {
   final List<ShoppingItem> nurseryShoppingList;
   final String lightingInsight;
   final String keralaSeasonTip;
+  final PhotoSpaceAnalysis? photoAnalysis;
 
   SpaceAnalysisResult({
     required this.spaceType,
@@ -107,5 +142,6 @@ class SpaceAnalysisResult {
     required this.nurseryShoppingList,
     required this.lightingInsight,
     required this.keralaSeasonTip,
+    this.photoAnalysis,
   });
 }

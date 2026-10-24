@@ -43,7 +43,7 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (_, __) => [
+        headerSliverBuilder: (_, _) => [
           SliverAppBar(
             expandedHeight: 200,
             pinned: true,
@@ -53,7 +53,11 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF1B5E20), Color(0xFF43A047), Color(0xFF81C784)],
+                    colors: [
+                      Color(0xFF1B5E20),
+                      Color(0xFF43A047),
+                      Color(0xFF81C784),
+                    ],
                   ),
                 ),
                 child: SafeArea(
@@ -61,19 +65,30 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const SizedBox(height: 32),
-                      Text(widget.crop.emoji, style: const TextStyle(fontSize: 64))
-                          .animate().scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1),
-                              duration: 500.ms, curve: Curves.elasticOut),
+                      Text(
+                        widget.crop.emoji,
+                        style: const TextStyle(fontSize: 64),
+                      ).animate().scale(
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(1, 1),
+                        duration: 500.ms,
+                        curve: Curves.elasticOut,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         widget.crop.name,
                         style: GoogleFonts.outfit(
-                          fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
                       ),
                       Text(
                         widget.crop.malayalamName,
-                        style: GoogleFonts.outfit(fontSize: 14, color: Colors.white70),
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -82,7 +97,9 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
               title: Text(
                 '${widget.crop.emoji} Growing Guide',
                 style: GoogleFonts.outfit(
-                  fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
               titlePadding: const EdgeInsets.only(left: 60, bottom: 14),
@@ -131,17 +148,33 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('📋 Soil Mix', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14)),
+                Text(
+                  '📋 Soil Mix',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(_guide.idealSoilMix,
-                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                Text(
+                  _guide.idealSoilMix,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ).animate().fadeIn().slideY(begin: 0.1, end: 0),
 
           const SizedBox(height: 16),
-          Text('📅 Step-by-Step Growing Timeline',
-              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800)),
+          Text(
+            '📅 Step-by-Step Growing Timeline',
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           const SizedBox(height: 10),
 
           // Steps accordion
@@ -153,10 +186,14 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 decoration: BoxDecoration(
-                  color: isExpanded ? AppColors.primary.withAlpha(12) : Colors.white,
+                  color: isExpanded
+                      ? AppColors.primary.withAlpha(12)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isExpanded ? AppColors.primary : Colors.grey.shade200,
+                    color: isExpanded
+                        ? AppColors.primary
+                        : Colors.grey.shade200,
                     width: isExpanded ? 1.5 : 1,
                   ),
                 ),
@@ -166,29 +203,45 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                     children: [
                       // Header
                       InkWell(
-                        onTap: () => setState(() => _expandedStep = isExpanded ? -1 : i),
+                        onTap: () =>
+                            setState(() => _expandedStep = isExpanded ? -1 : i),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           child: Row(
                             children: [
-                              Text(step.iconEmoji, style: const TextStyle(fontSize: 26)),
+                              Text(
+                                step.iconEmoji,
+                                style: const TextStyle(fontSize: 26),
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(step.stageTitle,
-                                        style: GoogleFonts.outfit(
-                                            fontWeight: FontWeight.w700, fontSize: 14)),
-                                    Text(step.durationRange,
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            color: AppColors.primary.withAlpha(180))),
+                                    Text(
+                                      step.stageTitle,
+                                      style: GoogleFonts.outfit(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Text(
+                                      step.durationRange,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.primary.withAlpha(180),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                               Icon(
-                                isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                isExpanded
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
                                 color: AppColors.primary,
                               ),
                             ],
@@ -203,8 +256,13 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Divider(),
-                              Text(step.description,
-                                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                              Text(
+                                step.description,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
                               const SizedBox(height: 10),
                               Container(
                                 padding: const EdgeInsets.all(10),
@@ -215,37 +273,61 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('💡', style: TextStyle(fontSize: 18)),
+                                    const Text(
+                                      '💡',
+                                      style: TextStyle(fontSize: 18),
+                                    ),
                                     const SizedBox(width: 8),
                                     Expanded(
-                                      child: Text(step.actionableTip,
-                                          style: const TextStyle(
-                                              fontSize: 12.5,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF5D4037))),
+                                      child: Text(
+                                        step.actionableTip,
+                                        style: const TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF5D4037),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              Text('✅ Checklist',
-                                  style: GoogleFonts.outfit(
-                                      fontSize: 13, fontWeight: FontWeight.w700)),
-                              const SizedBox(height: 4),
-                              ...step.checklist.map((item) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 2),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('•  ', style: TextStyle(color: AppColors.primary)),
-                                    Expanded(
-                                      child: Text(item,
-                                          style: const TextStyle(
-                                              fontSize: 12.5, color: AppColors.textSecondary)),
-                                    ),
-                                  ],
+                              Text(
+                                '✅ Checklist',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
                                 ),
-                              )),
+                              ),
+                              const SizedBox(height: 4),
+                              ...step.checklist.map(
+                                (item) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 2,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        '•  ',
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          item,
+                                          style: const TextStyle(
+                                            fontSize: 12.5,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ).animate().fadeIn(duration: 200.ms),
@@ -259,22 +341,36 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
           // Common pitfalls
           if (_guide.commonPitfalls.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text('⚠️ Common Mistakes to Avoid',
-                style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            ..._guide.commonPitfalls.map((p) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3E0),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFF9800).withAlpha(80)),
-                ),
-                child: Text('⚠️ $p',
-                    style: const TextStyle(fontSize: 13, color: Color(0xFFE65100))),
+            Text(
+              '⚠️ Common Mistakes to Avoid',
+              style: GoogleFonts.outfit(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
               ),
-            )),
+            ),
+            const SizedBox(height: 8),
+            ..._guide.commonPitfalls.map(
+              (p) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3E0),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFFF9800).withAlpha(80),
+                    ),
+                  ),
+                  child: Text(
+                    '⚠️ $p',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFFE65100),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
           ],
         ],
@@ -301,8 +397,11 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                 Expanded(
                   child: Text(
                     '100% Organic Kerala Agronomy Recipes. No synthetic pesticides.',
-                    style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600,
-                        color: AppColors.primary),
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
               ],
@@ -313,70 +412,111 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
             final recipe = entry.value;
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.green.shade100),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('🧪 ${recipe.name}',
-                          style: GoogleFonts.outfit(
-                              fontSize: 15, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
-                      Text('🎯 Target: ${recipe.targetPests}',
-                          style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 12),
-                      Text('🧄 Ingredients:',
-                          style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w700, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      ...recipe.ingredients.map((ing) => Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('  • ', style: TextStyle(color: AppColors.primary)),
-                            Expanded(
-                                child: Text(ing,
-                                    style: const TextStyle(
-                                        fontSize: 12.5,
-                                        color: AppColors.textSecondary))),
-                          ],
+              child:
+                  Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.green.shade100),
                         ),
-                      )),
-                      const SizedBox(height: 10),
-                      Text('🔧 Preparation:',
-                          style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w700, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      Text(recipe.preparationSteps,
-                          style: const TextStyle(
-                              fontSize: 12.5, color: AppColors.textSecondary)),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(15),
-                          borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '🧪 ${recipe.name}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '🎯 Target: ${recipe.targetPests}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                '🧄 Ingredients:',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              ...recipe.ingredients.map(
+                                (ing) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 3),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        '  • ',
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          ing,
+                                          style: const TextStyle(
+                                            fontSize: 12.5,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                '🔧 Preparation:',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                recipe.preparationSteps,
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '🗓️ ${recipe.applicationFrequency}',
+                                  style: const TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Text('🗓️ ${recipe.applicationFrequency}',
-                            style: const TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary)),
-                      ),
-                    ],
-                  ),
-                ),
-              ).animate(delay: (entry.key * 100).ms).fadeIn().slideY(begin: 0.1, end: 0),
+                      )
+                      .animate(delay: (entry.key * 100).ms)
+                      .fadeIn()
+                      .slideY(begin: 0.1, end: 0),
             );
           }),
         ],
@@ -395,7 +535,10 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primary.withAlpha(20), const Color(0xFFE3F2FD)],
+                colors: [
+                  AppColors.primary.withAlpha(20),
+                  const Color(0xFFE3F2FD),
+                ],
               ),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -407,7 +550,9 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                   child: Text(
                     'Kerala Agri AI Botanist — Expert Q&A for ${widget.crop.name}',
                     style: GoogleFonts.outfit(
-                        fontSize: 13, fontWeight: FontWeight.w600),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -426,7 +571,10 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                   side: BorderSide(color: Colors.blue.shade100),
                 ),
                 child: ExpansionTile(
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 4,
+                  ),
                   childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
                   leading: Container(
                     width: 32,
@@ -439,9 +587,13 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                       child: Text('❓', style: TextStyle(fontSize: 16)),
                     ),
                   ),
-                  title: Text(q,
-                      style: GoogleFonts.outfit(
-                          fontSize: 13.5, fontWeight: FontWeight.w700)),
+                  title: Text(
+                    q,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -454,9 +606,13 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                         children: [
                           const Text('🤖 ', style: TextStyle(fontSize: 16)),
                           Expanded(
-                            child: Text(a,
-                                style: const TextStyle(
-                                    fontSize: 13, color: Color(0xFF2E7D32))),
+                            child: Text(
+                              a,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -476,7 +632,9 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 10)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 10),
+        ],
       ),
       child: Row(
         children: [
@@ -492,7 +650,9 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.primary),
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
@@ -506,7 +666,9 @@ class _PlantGuideScreenState extends State<PlantGuideScreen>
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),

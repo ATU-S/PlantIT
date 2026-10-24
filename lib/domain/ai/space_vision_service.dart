@@ -1,47 +1,90 @@
-import 'dart:convert';
 import 'dart:typed_data';
-import 'package:http/http.dart' as http;
+
 import '../../data/models/space_analysis_model.dart';
-import 'recommendation_engine.dart';
+import 'google_cloud_vision_client.dart';
 import 'layout_planner.dart';
+import 'recommendation_engine.dart';
 
+/// Combines optional photo observations with PlantIT's local crop-planning
+/// rules. A photo is never used to overwrite the user's dimensions or daily
+/// direct-sunlight estimate because Google Cloud Vision cannot determine those
+/// reliably from one image.
 class SpaceVisionService {
-  final String? geminiApiKey;
+  static const _compiledVisionApiKey = String.fromEnvironment(
+    'GOOGLE_CLOUD_VISION_API_KEY',
+  );
 
-  SpaceVisionService({this.geminiApiKey});
+  final GoogleCloudVisionClient? _googleCloudVisionClient;
 
-  /// Analyzes growing space from user parameters and optional image
+  Uint8List? _lastAnalyzedImage;
+  PhotoSpaceAnalysis? _lastPhotoAnalysis;
+
+  SpaceVisionService({
+    String? googleCloudVisionApiKey,
+    GoogleCloudVisionClient? googleCloudVisionClient,
+  }) : _googleCloudVisionClient = googleCloudVisionClient ??
+            _clientForKey(googleCloudVisionApiKey ?? _compiledVisionApiKey);
+
+  bool get isGoogleCloudVisionConfigured => _googleCloudVisionClient != null;
+
+  /// Analyzes a growing space using user-entered measurements and, when a
+  /// local development API key is provided, photo observations from Vision.
   Future<SpaceAnalysisResult> analyzeSpace({
     required SpaceType spaceType,
     required double lengthMeters,
     required double widthMeters,
     required double sunlightHours,
     Uint8List? imageBytes,
-    String? mimeType,
   }) async {
-    // If user provided a Gemini API Key and an image, we can query Gemini multimodal
-    if (geminiApiKey != null && geminiApiKey!.trim().isNotEmpty && imageBytes != null) {
-      try {
-        final geminiResult = await _queryGeminiVision(
-          imageBytes: imageBytes,
-          mimeType: mimeType ?? 'image/jpeg',
-          spaceType: spaceType,
-        );
-        if (geminiResult != null) {
-          return geminiResult;
-        }
-      } catch (_) {
-        // Fallback to local intelligent analysis
-      }
-    }
+    final photoAnalysis = await _analyzePhotoIfNeeded(imageBytes);
 
-    // Default intelligent rule-based engine
     return _synthesizeAnalysis(
       spaceType: spaceType,
       lengthMeters: lengthMeters,
       widthMeters: widthMeters,
       sunlightHours: sunlightHours,
+      photoAnalysis: photoAnalysis,
     );
+  }
+
+  static GoogleCloudVisionClient? _clientForKey(String apiKey) {
+    if (apiKey.trim().isEmpty) return null;
+    return GoogleCloudVisionClient(apiKey: apiKey.trim());
+  }
+
+  Future<PhotoSpaceAnalysis?> _analyzePhotoIfNeeded(Uint8List? imageBytes) async {
+    if (imageBytes == null) return null;
+
+    // Slider changes and space-type changes reuse the selected bytes. Cache
+    // the remote response so the same image is not uploaded repeatedly.
+    if (identical(imageBytes, _lastAnalyzedImage) &&
+        _lastPhotoAnalysis != null) {
+      return _lastPhotoAnalysis;
+    }
+
+    final PhotoSpaceAnalysis photoAnalysis;
+    if (_googleCloudVisionClient == null) {
+      photoAnalysis = const PhotoSpaceAnalysis(
+        source: PhotoAnalysisSource.offlineFallback,
+        statusMessage:
+            'Photo saved locally. Add a Google Cloud Vision key to this local build to enable photo observations.',
+      );
+    } else {
+      try {
+        photoAnalysis =
+            await _googleCloudVisionClient.analyzeGrowingSpace(imageBytes);
+      } catch (_) {
+        photoAnalysis = const PhotoSpaceAnalysis(
+          source: PhotoAnalysisSource.offlineFallback,
+          statusMessage:
+              'Google Cloud Vision was unavailable. This plan uses your manual measurements and local crop data.',
+        );
+      }
+    }
+
+    _lastAnalyzedImage = imageBytes;
+    _lastPhotoAnalysis = photoAnalysis;
+    return photoAnalysis;
   }
 
   SpaceAnalysisResult _synthesizeAnalysis({
@@ -49,11 +92,11 @@ class SpaceVisionService {
     required double lengthMeters,
     required double widthMeters,
     required double sunlightHours,
+    PhotoSpaceAnalysis? photoAnalysis,
   }) {
     final areaSqMeters = lengthMeters * widthMeters;
     final season = RecommendationEngine.detectKeralaSeason();
 
-    // Top crop recommendations
     final recommendations = RecommendationEngine.rankCrops(
       sunlightHours: sunlightHours,
       areaSqMeters: areaSqMeters,
@@ -62,16 +105,14 @@ class SpaceVisionService {
     );
 
     final top5 = recommendations.take(5).toList();
-    final topCrops = top5.map((r) => r.crop).toList();
+    final topCrops = top5.map((recommendation) => recommendation.crop).toList();
 
-    // Generate grid layout (e.g. 3x3 for balcony/terrace)
     final grid = LayoutPlanner.generateCompanionGrid(
       selectedCrops: topCrops,
       rows: 3,
       cols: 3,
     );
 
-    // Generate nursery shopping list
     final shoppingList = LayoutPlanner.generateShoppingList(
       crops: topCrops,
       areaSqMeters: areaSqMeters,
@@ -102,7 +143,8 @@ class SpaceVisionService {
         keralaSeasonTip =
             'Summer Season: Provide morning watering and thin 50% green agro-shade netting to protect tender foliage.';
       case Season.yearRound:
-        keralaSeasonTip = 'Year-round tropical climate supports continuous leafy vegetable rotation.';
+        keralaSeasonTip =
+            'Year-round tropical climate supports continuous leafy vegetable rotation.';
     }
 
     return SpaceAnalysisResult(
@@ -116,70 +158,7 @@ class SpaceVisionService {
       nurseryShoppingList: shoppingList,
       lightingInsight: lightingInsight,
       keralaSeasonTip: keralaSeasonTip,
+      photoAnalysis: photoAnalysis,
     );
-  }
-
-  Future<SpaceAnalysisResult?> _queryGeminiVision({
-    required Uint8List imageBytes,
-    required String mimeType,
-    required SpaceType spaceType,
-  }) async {
-    final base64Image = base64Encode(imageBytes);
-    final url = Uri.parse(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$geminiApiKey');
-
-    final prompt = '''
-You are an expert Kerala urban agronomist analyzing a photo of a ${spaceType.name}.
-Analyze the lighting, sun direction, shadows, and approximate dimensions in meters.
-Return ONLY a valid JSON object matching this structure:
-{
-  "estimatedSunHours": 5.5,
-  "lengthMeters": 2.5,
-  "widthMeters": 1.5,
-  "lightingObservation": "Bright southern exposure with afternoon partial shade."
-}
-''';
-
-    final body = {
-      "contents": [
-        {
-          "parts": [
-            {"text": prompt},
-            {
-              "inline_data": {
-                "mime_type": mimeType,
-                "data": base64Image,
-              }
-            }
-          ]
-        }
-      ]
-    };
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      final text = jsonResponse['candidates'][0]['content']['parts'][0]['text'] as String;
-      // Clean JSON formatting markdown
-      final cleanText = text.replaceAll('```json', '').replaceAll('```', '').trim();
-      final parsed = jsonDecode(cleanText);
-
-      final sun = (parsed['estimatedSunHours'] as num).toDouble();
-      final length = (parsed['lengthMeters'] as num).toDouble();
-      final width = (parsed['widthMeters'] as num).toDouble();
-
-      return _synthesizeAnalysis(
-        spaceType: spaceType,
-        lengthMeters: length,
-        widthMeters: width,
-        sunlightHours: sun,
-      );
-    }
-    return null;
   }
 }

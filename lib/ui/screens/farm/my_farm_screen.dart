@@ -33,13 +33,19 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
         title: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             value: activeFarm?.id,
-            icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.primary),
+            icon: const Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.primary,
+            ),
             items: farmVM.farms.map((f) {
               return DropdownMenuItem<String>(
                 value: f.id,
                 child: Text(
                   f.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               );
             }).toList(),
@@ -50,7 +56,10 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_location_alt_outlined, color: AppColors.primary),
+            icon: const Icon(
+              Icons.add_location_alt_outlined,
+              color: AppColors.primary,
+            ),
             tooltip: 'Add New Space / Farm',
             onPressed: () => _showCreateFarmModal(context, farmVM),
           ),
@@ -67,7 +76,8 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
                 FilterChip(
                   label: const Text('All Crops'),
                   selected: _selectedFilterStage == null,
-                  onSelected: (_) => setState(() => _selectedFilterStage = null),
+                  onSelected: (_) =>
+                      setState(() => _selectedFilterStage = null),
                 ),
                 const SizedBox(width: 8),
                 ...GrowthStage.values.map((stage) {
@@ -98,7 +108,10 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
                         const SizedBox(height: 12),
                         const Text(
                           'No crops match this filter',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         ElevatedButton.icon(
@@ -133,7 +146,8 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
                             }
                           }
                         },
-                        onTap: () => _showCropDetailSheet(context, farmVM, crop),
+                        onTap: () =>
+                            _showCropDetailSheet(context, farmVM, crop),
                       );
                     },
                   ),
@@ -150,7 +164,12 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
     );
   }
 
-  void _showCropDetailSheet(BuildContext context, FarmViewModel farmVM, FarmCrop crop) {
+  void _showCropDetailSheet(
+    BuildContext context,
+    FarmViewModel farmVM,
+    FarmCrop crop,
+  ) {
+    final notesController = TextEditingController(text: crop.customNotes);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -179,16 +198,24 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
                       children: [
                         Text(
                           crop.cropName,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        Text('Planted on ${crop.plantedDate.day}/${crop.plantedDate.month}/${crop.plantedDate.year}'),
+                        Text(
+                          'Planted on ${crop.plantedDate.day}/${crop.plantedDate.month}/${crop.plantedDate.year}',
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 18),
-              const Text('Update Growth Stage:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Update Growth Stage:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -213,22 +240,100 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
                 }).toList(),
               ),
               const SizedBox(height: 16),
-              if (crop.customNotes.isNotEmpty) ...[
-                const Text('Notes:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(crop.customNotes, style: const TextStyle(color: AppColors.textSecondary)),
-                const SizedBox(height: 12),
-              ],
+              const Text(
+                'Garden notes:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: notesController,
+                maxLines: 2,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  hintText: 'Observations, feeding schedule, or pests spotted…',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Log care:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _careAction(
+                    context,
+                    farmVM,
+                    crop,
+                    ActivityType.fertilize,
+                    Icons.compost,
+                    'Fertilize +5',
+                  ),
+                  _careAction(
+                    context,
+                    farmVM,
+                    crop,
+                    ActivityType.prune,
+                    Icons.content_cut,
+                    'Prune +4',
+                  ),
+                  _careAction(
+                    context,
+                    farmVM,
+                    crop,
+                    ActivityType.pestControl,
+                    Icons.shield_outlined,
+                    'Pest control +6',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Done'),
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await farmVM.updateNotes(crop.id, notesController.text);
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                  icon: const Icon(Icons.save_outlined),
+                  label: const Text('Save Notes'),
                 ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _careAction(
+    BuildContext context,
+    FarmViewModel farmVM,
+    FarmCrop crop,
+    ActivityType type,
+    IconData icon,
+    String label,
+  ) {
+    return OutlinedButton.icon(
+      onPressed: () async {
+        final badges = await farmVM.logCare(crop.id, type);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${type.name} logged for ${crop.cropName}. Great care!',
+            ),
+          ),
+        );
+        for (final badge in badges) {
+          BadgeUnlockDialog.show(context, badge);
+        }
+      },
+      icon: Icon(icon, size: 16),
+      label: Text(label),
     );
   }
 
@@ -248,7 +353,10 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
