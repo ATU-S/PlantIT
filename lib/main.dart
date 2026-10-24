@@ -12,6 +12,7 @@ import 'ui/view_models/farm_view_model.dart';
 import 'ui/view_models/gamification_view_model.dart';
 import 'ui/view_models/planner_view_model.dart';
 import 'ui/screens/splash/splash_screen.dart';
+import 'ui/screens/onboarding/onboarding_screen.dart';
 import 'ui/screens/main_shell_screen.dart';
 
 void main() async {
@@ -36,6 +37,7 @@ void main() async {
       farmRepo: farmRepo,
       gamificationRepo: gamificationRepo,
       visionService: visionService,
+      storageService: storageService,
     ),
   );
 }
@@ -45,6 +47,7 @@ class PlantItApp extends StatelessWidget {
   final FarmRepository farmRepo;
   final GamificationRepository gamificationRepo;
   final SpaceVisionService visionService;
+  final LocalStorageService storageService;
 
   const PlantItApp({
     super.key,
@@ -52,10 +55,15 @@ class PlantItApp extends StatelessWidget {
     required this.farmRepo,
     required this.gamificationRepo,
     required this.visionService,
+    required this.storageService,
   });
 
   @override
   Widget build(BuildContext context) {
+    final nextScreen = storageService.hasCompletedOnboarding()
+        ? MainShellScreen(storageService: storageService)
+        : OnboardingScreen(storageService: storageService);
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<GamificationViewModel>(
@@ -94,7 +102,7 @@ class PlantItApp extends StatelessWidget {
         title: 'PlantIT',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const SplashScreen(nextScreen: MainShellScreen()),
+        home: SplashScreen(nextScreen: nextScreen),
       ),
     );
   }

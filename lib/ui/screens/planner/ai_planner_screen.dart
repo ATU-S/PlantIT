@@ -146,6 +146,44 @@ class _AiPlannerScreenState extends State<AiPlannerScreen> with SingleTickerProv
             ),
             child: Column(
               children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: vm.isVisionConfigured
+                        ? AppColors.primary.withAlpha(15)
+                        : AppColors.warning.withAlpha(18),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: vm.isVisionConfigured
+                          ? AppColors.primary.withAlpha(80)
+                          : AppColors.warning.withAlpha(110),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        vm.isVisionConfigured ? Icons.check_circle : Icons.info_outline,
+                        color: vm.isVisionConfigured ? AppColors.primary : AppColors.warning,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          vm.isVisionConfigured
+                              ? 'Google Cloud Vision is active for photo analysis.'
+                              : 'Photo analysis is offline only. Add GOOGLE_CLOUD_VISION_API_KEY to enable AI image detection.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: vm.isVisionConfigured ? AppColors.primary : AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 if (vm.imageBytes != null)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),

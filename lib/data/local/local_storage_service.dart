@@ -8,6 +8,8 @@ class LocalStorageService {
   static const String _keyActiveFarmId = 'plantit_active_farm_id_v1';
   static const String _keyGamification = 'plantit_gamification_v1';
   static const String _keyGeminiApiKey = 'plantit_gemini_api_key';
+  static const String _keyOnboardingProfile = 'plantit_onboarding_profile_v1';
+  static const String _keyOnboardingCompleted = 'plantit_onboarding_completed_v1';
 
   final SharedPreferences _prefs;
 
@@ -71,6 +73,29 @@ class LocalStorageService {
   Future<void> saveGamification(UserGamification gamification) async {
     final raw = jsonEncode(gamification.toJson());
     await _prefs.setString(_keyGamification, raw);
+  }
+
+  // Onboarding profile
+  bool hasCompletedOnboarding() => _prefs.getBool(_keyOnboardingCompleted) ?? false;
+
+  Map<String, String> getBeginnerProfile() {
+    final raw = _prefs.getString(_keyOnboardingProfile);
+    if (raw == null || raw.isEmpty) return {};
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        return decoded.map((key, value) => MapEntry(key.toString(), value.toString()));
+      }
+    } catch (_) {
+      return {};
+    }
+    return {};
+  }
+
+  Future<void> saveBeginnerProfile(Map<String, String> profile) async {
+    await _prefs.setString(_keyOnboardingProfile, jsonEncode(profile));
+    await _prefs.setBool(_keyOnboardingCompleted, true);
   }
 
   // API Key storage

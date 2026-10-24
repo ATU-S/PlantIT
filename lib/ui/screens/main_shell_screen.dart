@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plantit/core/theme/app_colors.dart';
+import 'package:plantit/data/local/local_storage_service.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'planner/ai_planner_screen.dart';
 import 'farm/my_farm_screen.dart';
@@ -8,7 +9,12 @@ import 'gamification/badges_screen.dart';
 import 'marketplace/marketplace_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
-  const MainShellScreen({super.key});
+  final LocalStorageService storageService;
+
+  const MainShellScreen({
+    super.key,
+    required this.storageService,
+  });
 
   @override
   State<MainShellScreen> createState() => _MainShellScreenState();
@@ -27,6 +33,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   Widget build(BuildContext context) {
     final List<Widget> screens = [
       DashboardScreen(
+        storageService: widget.storageService,
         onNavigateToPlanner: () => _navigateToIndex(1),
         onNavigateToGarden: () => _navigateToIndex(2),
         onNavigateToBadges: () => _navigateToIndex(5),

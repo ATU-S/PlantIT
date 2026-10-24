@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:plantit/core/theme/app_colors.dart';
+import 'package:plantit/data/local/local_storage_service.dart';
 import 'package:plantit/data/models/farm_model.dart';
 import 'package:plantit/data/models/gamification_model.dart';
 import 'package:plantit/ui/view_models/farm_view_model.dart';
@@ -11,12 +12,14 @@ import 'package:plantit/ui/widgets/farm_crop_card.dart';
 import 'package:plantit/ui/widgets/badge_unlock_dialog.dart';
 
 class DashboardScreen extends StatelessWidget {
+  final LocalStorageService storageService;
   final VoidCallback onNavigateToPlanner;
   final VoidCallback onNavigateToGarden;
   final VoidCallback onNavigateToBadges;
 
   const DashboardScreen({
     super.key,
+    required this.storageService,
     required this.onNavigateToPlanner,
     required this.onNavigateToGarden,
     required this.onNavigateToBadges,
@@ -34,6 +37,11 @@ class DashboardScreen extends StatelessWidget {
     final gamificationVM = context.watch<GamificationViewModel>();
     final activeFarm = farmVM.activeFarm;
     final cropsNeedingCare = farmVM.cropsNeedingCare;
+    final profile = storageService.getBeginnerProfile();
+    final space = profile['space'] ?? 'Balcony';
+    final sunlight = profile['sunlight'] ?? '4-6 hours';
+    final goal = profile['goal'] ?? 'Grow food';
+    final firstPick = _recommendedStarter(goal, space);
 
     return Scaffold(
       appBar: AppBar(
@@ -68,6 +76,129 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1C5F3C), Color(0xFF3C8F52)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Starter plan',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Based on your $space setup and $sunlight sunlight',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Best first crop: $firstPick • ideal for $goal goals',
+                      style: const TextStyle(
+                        color: Color(0xFFE8F5E9),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: onNavigateToPlanner,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Plan my garden'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.check_circle_outline, color: AppColors.primary, size: 18),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Today’s grow checklist',
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ..._dailyChecklist(space, sunlight, goal).map((task) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 18,
+                                height: 18,
+                                margin: const EdgeInsets.only(top: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(18),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(Icons.done, size: 12, color: AppColors.primary),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  task,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textPrimary,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // 1. Gamification Hero
               GamificationHeader(
                 viewModel: gamificationVM,
@@ -324,6 +455,36 @@ class DashboardScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _recommendedStarter(String goal, String space) {
+    if (goal.toLowerCase().contains('food') || goal.toLowerCase().contains('grow')) {
+      if (space.toLowerCase().contains('balcony')) return 'Cheera / Red Amaranth';
+      if (space.toLowerCase().contains('terrace')) return 'Tomato + Basil';
+      return 'Mint + Spinach';
+    }
+    if (goal.toLowerCase().contains('decor')) return 'Tulsi / Holy Basil';
+    if (goal.toLowerCase().contains('easy')) return 'Mint';
+    return 'Cheera';
+  }
+
+  List<String> _dailyChecklist(String space, String sunlight, String goal) {
+    final base = [
+      'Check your $space for moisture before watering.',
+      'Keep plants in $sunlight light for best growth.',
+      'Inspect leaves for pests or yellowing before evening.',
+      'Focus on $goal-friendly crops first for steady progress.',
+    ];
+
+    if (space.toLowerCase().contains('balcony')) {
+      base.insert(1, 'Rotate pots every 2 days so all sides get balanced light.');
+    }
+
+    if (sunlight.toLowerCase().contains('shade')) {
+      base.add('Use a lighter pot mix and avoid overwatering in shaded spots.');
+    }
+
+    return base;
   }
 }
 

@@ -35,6 +35,7 @@ class PlannerViewModel extends ChangeNotifier {
   XFile? get selectedImage => _selectedImage;
   Uint8List? get imageBytes => _imageBytes;
   bool get isAnalyzing => _isAnalyzing;
+  bool get isVisionConfigured => _visionService.isGoogleCloudVisionConfigured;
   SpaceAnalysisResult? get analysisResult => _analysisResult;
   Set<String> get selectedCropIdsForFarm => _selectedCropIdsForFarm;
 
