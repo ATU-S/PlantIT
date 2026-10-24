@@ -15,6 +15,7 @@ class DashboardScreen extends StatelessWidget {
   final LocalStorageService storageService;
   final VoidCallback onNavigateToPlanner;
   final VoidCallback onNavigateToGarden;
+  final VoidCallback onNavigateToHealth;
   final VoidCallback onNavigateToBadges;
 
   const DashboardScreen({
@@ -22,6 +23,7 @@ class DashboardScreen extends StatelessWidget {
     required this.storageService,
     required this.onNavigateToPlanner,
     required this.onNavigateToGarden,
+    required this.onNavigateToHealth,
     required this.onNavigateToBadges,
   });
 
@@ -252,6 +254,14 @@ class DashboardScreen extends StatelessWidget {
                       label: 'New Crop',
                       subtitle: '+10 pts',
                       onTap: onNavigateToPlanner,
+                    ),
+                    Container(height: 36, width: 1, color: Colors.grey.shade300),
+                    _QuickCareButton(
+                      icon: Icons.favorite_border,
+                      color: AppColors.danger,
+                      label: 'Health',
+                      subtitle: '${farmVM.activeCrops.length} crops',
+                      onTap: onNavigateToHealth,
                     ),
                     Container(height: 36, width: 1, color: Colors.grey.shade300),
                     _QuickCareButton(

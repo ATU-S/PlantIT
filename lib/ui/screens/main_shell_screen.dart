@@ -5,6 +5,7 @@ import 'dashboard/dashboard_screen.dart';
 import 'planner/ai_planner_screen.dart';
 import 'farm/my_farm_screen.dart';
 import 'catalog/crop_catalog_screen.dart';
+import 'health/plant_health_dashboard_screen.dart';
 import 'gamification/badges_screen.dart';
 import 'marketplace/marketplace_screen.dart';
 
@@ -36,7 +37,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
         storageService: widget.storageService,
         onNavigateToPlanner: () => _navigateToIndex(1),
         onNavigateToGarden: () => _navigateToIndex(2),
-        onNavigateToBadges: () => _navigateToIndex(5),
+        onNavigateToHealth: () => _navigateToIndex(3),
+        onNavigateToBadges: () => _navigateToIndex(6),
       ),
       AiPlannerScreen(
         onFarmCreated: () => _navigateToIndex(0),
@@ -44,6 +46,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       MyFarmScreen(
         onAddCropTap: () => _navigateToIndex(3),
       ),
+      const PlantHealthDashboardScreen(),
       const CropCatalogScreen(),
       const MarketplaceScreen(),
       const BadgesScreen(),
@@ -69,12 +72,17 @@ class _MainShellScreenState extends State<MainShellScreen> {
           NavigationDestination(
             icon: Icon(Icons.auto_awesome_outlined),
             selectedIcon: Icon(Icons.auto_awesome, color: AppColors.primary),
-            label: 'AI Planner',
+            label: 'Planner',
           ),
           NavigationDestination(
             icon: Icon(Icons.eco_outlined),
             selectedIcon: Icon(Icons.eco, color: AppColors.primary),
-            label: 'My Garden',
+            label: 'Garden',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.favorite_border),
+            selectedIcon: Icon(Icons.favorite, color: AppColors.primary),
+            label: 'Health',
           ),
           NavigationDestination(
             icon: Icon(Icons.menu_book_outlined),
@@ -84,7 +92,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
           NavigationDestination(
             icon: Icon(Icons.storefront_outlined),
             selectedIcon: Icon(Icons.storefront, color: Color(0xFF00897B)),
-            label: 'Marketplace',
+            label: 'Market',
           ),
           NavigationDestination(
             icon: Icon(Icons.emoji_events_outlined),
