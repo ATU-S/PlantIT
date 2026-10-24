@@ -18,8 +18,8 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
     // Auto-fetch on first load
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final service = context.read<LocationWeatherService>();
-      if (service.current == null && !service.loading) {
-        service.fetchWeatherForDistrict(service.selectedDistrict);
+      if (service.current == null && !service.loading && !service.locating) {
+        service.detectUserLocation();
       }
     });
   }
@@ -63,9 +63,12 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
                       ),
                     ),
                     Text(
-                      weather?.locationLabel ?? '${service.selectedDistrict}, Kerala',
+                      weather?.locationLabel ??
+                          '${service.selectedDistrict}, Kerala',
                       style: const TextStyle(
-                          fontSize: 11.5, color: AppColors.textSecondary),
+                        fontSize: 11.5,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -74,7 +77,10 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
               GestureDetector(
                 onTap: () => _showDistrictPicker(context, service),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
@@ -82,7 +88,11 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on, size: 13, color: AppColors.primary),
+                      const Icon(
+                        Icons.location_on,
+                        size: 13,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 2),
                       Text(
                         service.selectedDistrict.split(' ').first, // Shortened
@@ -92,7 +102,11 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
                           color: AppColors.primary,
                         ),
                       ),
-                      const Icon(Icons.arrow_drop_down, size: 14, color: AppColors.primary),
+                      const Icon(
+                        Icons.arrow_drop_down,
+                        size: 14,
+                        color: AppColors.primary,
+                      ),
                     ],
                   ),
                 ),
@@ -102,7 +116,9 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
               GestureDetector(
                 onTap: service.loading
                     ? null
-                    : () => service.fetchWeatherForDistrict(service.selectedDistrict),
+                    : () => service.fetchWeatherForDistrict(
+                        service.selectedDistrict,
+                      ),
                 child: Container(
                   width: 32,
                   height: 32,
@@ -114,13 +130,30 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
                       ? const Padding(
                           padding: EdgeInsets.all(7),
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: AppColors.primary),
+                            strokeWidth: 2,
+                            color: AppColors.primary,
+                          ),
                         )
-                      : const Icon(Icons.refresh, size: 18, color: AppColors.primary),
+                      : const Icon(
+                          Icons.refresh,
+                          size: 18,
+                          color: AppColors.primary,
+                        ),
                 ),
               ),
             ],
           ),
+
+          if (service.locationStatus.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              service.locationStatus,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
 
           if (weather != null) ...[
             const SizedBox(height: 14),
@@ -162,9 +195,10 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
               child: Text(
                 weather.agriAdvice,
                 style: const TextStyle(
-                    fontSize: 12.5,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500),
+                  fontSize: 12.5,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -172,38 +206,55 @@ class _WeatherKeralaCardState extends State<WeatherKeralaCard> {
           if (service.error.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text(service.error,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              child: Text(
+                service.error,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ),
         ],
       ),
     );
   }
 
-  void _showDistrictPicker(BuildContext context, LocationWeatherService service) {
-    final districts = LocationWeatherService.districtCoords.keys.toList()..sort();
+  void _showDistrictPicker(
+    BuildContext context,
+    LocationWeatherService service,
+  ) {
+    final districts = LocationWeatherService.districtCoords.keys.toList()
+      ..sort();
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text('Select Your District',
-                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700)),
+            child: Text(
+              'Select Your District',
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
-          ...districts.map((d) => ListTile(
-                leading: const Icon(Icons.location_on, color: AppColors.primary),
-                title: Text(d),
-                selected: d == service.selectedDistrict,
-                selectedTileColor: AppColors.primary.withAlpha(15),
-                onTap: () {
-                  Navigator.pop(context);
-                  service.fetchWeatherForDistrict(d);
-                },
-              )),
+          ...districts.map(
+            (d) => ListTile(
+              leading: const Icon(Icons.location_on, color: AppColors.primary),
+              title: Text(d),
+              selected: d == service.selectedDistrict,
+              selectedTileColor: AppColors.primary.withAlpha(15),
+              onTap: () {
+                Navigator.pop(context);
+                service.fetchWeatherForDistrict(d);
+              },
+            ),
+          ),
           const SizedBox(height: 16),
         ],
       ),
@@ -216,7 +267,11 @@ class _StatPill extends StatelessWidget {
   final String value;
   final String label;
 
-  const _StatPill({required this.emoji, required this.value, required this.label});
+  const _StatPill({
+    required this.emoji,
+    required this.value,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -233,11 +288,21 @@ class _StatPill extends StatelessWidget {
           children: [
             Text(emoji, style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 3),
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-            Text(label,
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
       ),

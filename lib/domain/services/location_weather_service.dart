@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 class WeatherData {
@@ -29,32 +30,100 @@ class LocationWeatherService extends ChangeNotifier {
   bool _loading = false;
   String _error = '';
   String _selectedDistrict = 'Ernakulam';
+  bool _locating = false;
+  String _locationStatus = '';
 
   WeatherData? get current => _current;
   bool get loading => _loading;
   String get error => _error;
   String get selectedDistrict => _selectedDistrict;
+  bool get locating => _locating;
+  String get locationStatus => _locationStatus;
 
   // Kerala district lat/lon lookup – intentionally public for UI district picker
   static const Map<String, List<double>> districtCoords = {
     'Thiruvananthapuram': [8.5241, 76.9366],
-    'Kollam':             [8.8932, 76.6141],
-    'Pathanamthitta':     [9.2648, 76.7870],
-    'Alappuzha':          [9.4981, 76.3388],
-    'Kottayam':           [9.5916, 76.5222],
-    'Idukki':             [9.9189, 77.1025],
-    'Ernakulam':          [9.9816, 76.2999],
-    'Thrissur':           [10.5276, 76.2144],
-    'Palakkad':           [10.7867, 76.6548],
-    'Malappuram':         [11.0511, 76.0711],
-    'Kozhikode':          [11.2588, 75.7804],
-    'Wayanad':            [11.6854, 76.1320],
-    'Kannur':             [11.8745, 75.3704],
-    'Kasaragod':          [12.4996, 74.9869],
+    'Kollam': [8.8932, 76.6141],
+    'Pathanamthitta': [9.2648, 76.7870],
+    'Alappuzha': [9.4981, 76.3388],
+    'Kottayam': [9.5916, 76.5222],
+    'Idukki': [9.9189, 77.1025],
+    'Ernakulam': [9.9816, 76.2999],
+    'Thrissur': [10.5276, 76.2144],
+    'Palakkad': [10.7867, 76.6548],
+    'Malappuram': [11.0511, 76.0711],
+    'Kozhikode': [11.2588, 75.7804],
+    'Wayanad': [11.6854, 76.1320],
+    'Kannur': [11.8745, 75.3704],
+    'Kasaragod': [12.4996, 74.9869],
   };
+
+  /// Requests foreground location once and selects the nearest Kerala
+  /// district. The weather card can still be changed manually if permission
+  /// is denied or the user is outside Kerala.
+  Future<void> detectUserLocation() async {
+    if (_locating) return;
+
+    _locating = true;
+    _locationStatus = 'Detecting your location…';
+    notifyListeners();
+
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        throw const LocationServiceDisabledException();
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        throw StateError('Location permission unavailable');
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 12),
+        ),
+      );
+      final district = nearestDistrict(position.latitude, position.longitude);
+      _locating = false;
+      notifyListeners();
+      await fetchWeatherForDistrict(district);
+      _locationStatus = 'Using your location: $district, Kerala';
+      notifyListeners();
+    } catch (_) {
+      _locating = false;
+      _locationStatus =
+          'Location unavailable. Using $_selectedDistrict; choose a district manually if needed.';
+      notifyListeners();
+      await fetchWeatherForDistrict(_selectedDistrict);
+    }
+  }
+
+  /// Finds the closest known Kerala district using the local district map.
+  static String nearestDistrict(double latitude, double longitude) {
+    var closestDistrict = districtCoords.keys.first;
+    var closestDistance = double.infinity;
+
+    for (final entry in districtCoords.entries) {
+      final latitudeDelta = latitude - entry.value[0];
+      final longitudeDelta = longitude - entry.value[1];
+      final distance =
+          latitudeDelta * latitudeDelta + longitudeDelta * longitudeDelta;
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestDistrict = entry.key;
+      }
+    }
+    return closestDistrict;
+  }
 
   Future<void> fetchWeatherForDistrict(String district) async {
     _selectedDistrict = district;
+    _locationStatus = 'Using $district, Kerala';
     _loading = true;
     _error = '';
     notifyListeners();
@@ -76,14 +145,20 @@ class LocationWeatherService extends ChangeNotifier {
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
         final cur = data['current'] as Map<String, dynamic>;
-        final temp    = (cur['temperature_2m'] as num).toDouble();
+        final temp = (cur['temperature_2m'] as num).toDouble();
         final humidity = (cur['relative_humidity_2m'] as num).toDouble();
-        final precip  = (cur['precipitation'] as num).toDouble();
-        final uv      = (cur['uv_index'] as num).toDouble();
-        final wCode   = cur['weather_code'] as int;
+        final precip = (cur['precipitation'] as num).toDouble();
+        final uv = (cur['uv_index'] as num).toDouble();
+        final wCode = cur['weather_code'] as int;
 
         final (emoji, label) = _weatherCodeToLabel(wCode);
-        final advice = _generateAgriAdvice(temp, humidity, precip, uv, district);
+        final advice = _generateAgriAdvice(
+          temp,
+          humidity,
+          precip,
+          uv,
+          district,
+        );
 
         _current = WeatherData(
           temperatureCelsius: temp,
@@ -119,17 +194,29 @@ class LocationWeatherService extends ChangeNotifier {
     String label;
 
     if (month >= 6 && month <= 9) {
-      temp = 26.5; humidity = 92; precip = 18.0;
-      emoji = '🌧️'; label = 'Southwest Monsoon';
+      temp = 26.5;
+      humidity = 92;
+      precip = 18.0;
+      emoji = '🌧️';
+      label = 'Southwest Monsoon';
     } else if (month >= 10 && month <= 11) {
-      temp = 27.0; humidity = 85; precip = 8.0;
-      emoji = '⛅'; label = 'Northeast Monsoon';
+      temp = 27.0;
+      humidity = 85;
+      precip = 8.0;
+      emoji = '⛅';
+      label = 'Northeast Monsoon';
     } else if (month >= 12 || month <= 2) {
-      temp = 25.0; humidity = 75; precip = 1.0;
-      emoji = '☀️'; label = 'Clear & Cool';
+      temp = 25.0;
+      humidity = 75;
+      precip = 1.0;
+      emoji = '☀️';
+      label = 'Clear & Cool';
     } else {
-      temp = 32.0; humidity = 70; precip = 0.5;
-      emoji = '🌤️'; label = 'Hot Summer';
+      temp = 32.0;
+      humidity = 70;
+      precip = 0.5;
+      emoji = '🌤️';
+      label = 'Hot Summer';
     }
 
     return WeatherData(
@@ -155,7 +242,13 @@ class LocationWeatherService extends ChangeNotifier {
     return ('⛈️', 'Thunderstorm');
   }
 
-  String _generateAgriAdvice(double temp, double humidity, double precip, double uv, String district) {
+  String _generateAgriAdvice(
+    double temp,
+    double humidity,
+    double precip,
+    double uv,
+    String district,
+  ) {
     if (precip > 10) {
       return '⚠️ Heavy rainfall today. Ensure grow bags have drainage; avoid fertilizing. Check for root rot.';
     }

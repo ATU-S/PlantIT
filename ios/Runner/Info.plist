@@ -26,6 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>PlantIT uses your camera to analyze your growing space and recommend crops.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PlantIT uses your location to show local Kerala weather and crop advice.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PlantIT uses selected photos to analyze your growing space and recommend crops.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
